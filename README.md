@@ -16,11 +16,11 @@ And additionally, as usual, the modules to be installed for the virtual environm
 
 ### Basic
 
-For exploring the repository, the basic installation option is the right choice.
+For exploring the repository, the basic installation option is the recommended choice.
 
 #### Basic -- macOS/Linux
 
-Run either `make basic-unix` or the following lines:
+Run either `make basic-unix` or execute:
 
 ```shell
 pyenv local 3.11.3
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 #### Basic -- Windows (PowerShell)
 
-Run either `make basic-win` or the following lines:
+Run either `make basic-win` or execute:
 
 ```powershell
 pyenv local 3.11.3
@@ -44,11 +44,11 @@ pip install -r requirements.txt
 
 ### Extra
 
-For a smoother "committing experience" when contributing, it is recommended to install additionally the [pre-commit framework](https://pre-commit.com). On macOS, Linux and Windows (PowerShell), you can manually execute the following lines:
+For a smoother "committing experience" when contributing, it is recommended to install additionally the [pre-commit framework](https://pre-commit.com).
 
 #### Extra -- macOS/Linux
 
-In the activated virtual environment, run either `make unix-extra` or the following lines:
+Once the virtual environment is activated, run either `make unix-extra` or execute:
 
 ```shell
 pip install pre-commit
@@ -57,7 +57,7 @@ pre-commit install
 
 #### Extra -- Windows (PowerShell)
 
-In the activated virtual environment, run either `make win-extra` or the following lines:
+Once the virtual environment is activated, run either `make win-extra` or execute:
 
 ```powershell
 pip install pre-commit
