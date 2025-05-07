@@ -131,6 +131,7 @@ dmypy.json
 
 data/
 models/*.sav
+models/*.h5
 mlruns
 
 #config file has sensitive data
