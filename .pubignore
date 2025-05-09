@@ -1,0 +1,17 @@
+# Files and directories to ignore in the 
+# public version of the repository.
+
+# To filter the repository, install git-filter-repo:
+# ``` shell
+# brew install git-filter-repo
+# ```
+# Then, run the following commands:
+# ``` shell
+# git filter-repo --invert-paths --paths-from-file .pubignore 
+# git filter-repo --invert-paths --path .pubignore 
+# ```
+# As this command is destructive, it is recommended to create 
+# a backup of the repository before running it.
+
+drafts/
+archive/
