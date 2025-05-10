@@ -130,6 +130,7 @@ dmypy.json
 
 
 data/
+plots/
 models/*.sav
 models/*.h5
 mlruns
