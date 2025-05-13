@@ -1,0 +1,14 @@
+name: Are Notebooks Cleared
+
+on:
+  pull_request:
+    paths:
+      - "**/*.ipynb"
+  # workflow_dispatch:
+
+jobs:
+  are-notebooks-cleared:
+    uses: kvn-dtrx/git-hub-automatisation/.github/workflows/are_notebooks_cleared.yaml@main
+    with:
+      base_sha: ${{ github.event.pull_request.base.sha }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
