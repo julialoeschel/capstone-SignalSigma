@@ -1,132 +1,75 @@
-import pandas as pd
+import warnings
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from sklearn.feature_selection import mutual_info_regression
-from sklearn.linear_model import LinearRegression, LassoCV
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    r2_score,
-    mean_absolute_percentage_error,
-)
+import pandas as pd
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 from sklearn.inspection import permutation_importance
-from xgboost import XGBRegressor
 
+# Optional XGBoost import, fallback to RandomForest if missing
+try:
+    from xgboost import XGBRegressor
+except ImportError:
+    warnings.warn("XGBoost nicht gefunden; verwende RandomForestRegressor als Fallback.")
+    from sklearn.ensemble import RandomForestRegressor as XGBRegressor
 
 class ReducedFeatureSelector:
-    def __init__(self, data: pd.DataFrame, target_col: str, top_n: int = 15):
-        self.df = data.dropna().copy()
+    """
+    Wählt die Top-K-Features basierend auf einem Regressionsmodell.
+    Falls XGBoost installiert ist, wird XGBRegressor genutzt, sonst RandomForestRegressor.
+
+    Methoden:
+        select_features() -> (selected_features: list, metrics: dict)
+    """
+    def __init__(self, data: pd.DataFrame, target_col: str):
+        self.data = data
         self.target_col = target_col
-        self.top_n = top_n
-        self.X = self.df.drop(columns=[self.target_col])
-        self.y = self.df[self.target_col]
-
-    def calculate_metrics(self, y_true, y_pred):
-        return {
-            "MAE": mean_absolute_error(y_true, y_pred),
-            "RMSE": np.sqrt(mean_squared_error(y_true, y_pred)),
-            "R2": r2_score(y_true, y_pred),
-            "MAPE": mean_absolute_percentage_error(y_true, y_pred),
-            "MSE": mean_squared_error(y_true, y_pred),
-        }
-
-    def plot_importances(self, importances, title):
-        top_features = importances.sort_values(ascending=False).head(self.top_n)
-        plt.figure(figsize=(10, 6))
-        sns.barplot(x=top_features.values, y=top_features.index)
-        plt.title(f"{title} (Top {self.top_n})")
-        plt.tight_layout()
-        plt.show()
 
     def select_features(self):
-        metrics_dict = {}
-        all_top_features = []
+        """
+        Führt Features-Selection durch und gibt gewählte Features sowie Performance-Metriken.
 
-        # --- Pearson Correlation ---
-        corr = self.X.corrwith(self.y).abs()
-        top_corr = corr.sort_values(ascending=False).head(self.top_n)
-        self.plot_importances(top_corr, "Pearson Correlation")
-        all_top_features.extend(top_corr.index.tolist())
+        Returns:
+            selected (list): Top 10 Feature-Namen nach Wichtigkeit.
+            metrics (dict): Wörterbuch mit {'rmse', 'mae', 'mape'} auf dem Test-Set.
+        """
+        # Input-Daten trennen
+        X = self.data.drop(columns=[self.target_col])
+        y = self.data[self.target_col]
 
-        # --- Mutual Information ---
-        mi = mutual_info_regression(self.X, self.y, random_state=42)
-        mi_series = pd.Series(mi, index=self.X.columns).sort_values(ascending=False)
-        self.plot_importances(mi_series, "Mutual Information")
-        all_top_features.extend(mi_series.head(self.top_n).index.tolist())
-
-        # --- XGBoost ---
-        xgb = XGBRegressor(n_estimators=300, random_state=42)
-        xgb.fit(self.X, self.y)
-        xgb_importances = pd.Series(xgb.feature_importances_, index=self.X.columns)
-        self.plot_importances(xgb_importances, "XGBoost Feature Importance")
-        metrics_dict["XGBoost"] = self.calculate_metrics(self.y, xgb.predict(self.X))
-        all_top_features.extend(xgb_importances.nlargest(self.top_n).index.tolist())
-
-        # --- Decision Tree ---
-        dt = DecisionTreeRegressor(max_depth=5, random_state=42)
-        dt.fit(self.X, self.y)
-        dt_importances = pd.Series(dt.feature_importances_, index=self.X.columns)
-        self.plot_importances(dt_importances, "Decision Tree Feature Importance")
-        metrics_dict["Decision Tree"] = self.calculate_metrics(
-            self.y, dt.predict(self.X)
+        # Trainings-/Test-Split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
         )
-        all_top_features.extend(dt_importances.nlargest(self.top_n).index.tolist())
 
-        # --- Random Forest ---
-        rf = RandomForestRegressor(n_estimators=300, random_state=42)
-        rf.fit(self.X, self.y)
-        rf_importances = pd.Series(rf.feature_importances_, index=self.X.columns)
-        self.plot_importances(rf_importances, "Random Forest Feature Importance")
-        metrics_dict["Random Forest"] = self.calculate_metrics(
-            self.y, rf.predict(self.X)
+        # Modell initialisieren und trainieren
+        model = XGBRegressor(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
+
+        # Kreuzvalidierte RMSE
+        cv_scores = cross_val_score(
+            model, X_train, y_train, cv=5, scoring='neg_mean_squared_error'
         )
-        all_top_features.extend(rf_importances.nlargest(self.top_n).index.tolist())
+        rmse_cv = np.sqrt(-cv_scores)
 
-        # --- Linear Regression ---
-        lr = LinearRegression()
-        lr.fit(self.X, self.y)
-        lr_coef = pd.Series(np.abs(lr.coef_), index=self.X.columns).sort_values(
-            ascending=False
-        )
-        self.plot_importances(lr_coef, "Linear Regression Coefficients")
-        metrics_dict["Linear Regression"] = self.calculate_metrics(
-            self.y, lr.predict(self.X)
-        )
-        all_top_features.extend(lr_coef.head(self.top_n).index.tolist())
+        # Feature-Importances
+        if hasattr(model, 'feature_importances_'):
+            importances = model.feature_importances_
+        else:
+            imp = permutation_importance(
+                model, X_test, y_test, n_repeats=10, random_state=42
+            )
+            importances = imp.importances_mean
 
-        # --- Lasso Regression ---
-        lasso = LassoCV(cv=5)
-        lasso.fit(self.X, self.y)
-        lasso_coef = pd.Series(np.abs(lasso.coef_), index=self.X.columns).sort_values(
-            ascending=False
-        )
-        self.plot_importances(lasso_coef, "Lasso Regression Coefficients")
-        metrics_dict["Lasso"] = self.calculate_metrics(self.y, lasso.predict(self.X))
-        all_top_features.extend(lasso_coef.head(self.top_n).index.tolist())
+        # Top-10 Features auswählen
+        feat_imp = pd.Series(importances, index=X.columns)
+        selected = feat_imp.nlargest(10).index.tolist()
 
-        # --- Permutation Importance ---
-        perm = permutation_importance(rf, self.X, self.y, n_repeats=10, random_state=42)
-        perm_importance = pd.Series(
-            perm.importances_mean, index=self.X.columns
-        ).sort_values(ascending=False)
-        self.plot_importances(perm_importance, "Permutation Importance")
-        all_top_features.extend(perm_importance.head(self.top_n).index.tolist())
+        # Metriken auf Test-Set
+        y_pred = model.predict(X_test)
+        metrics = {
+            'rmse': mean_squared_error(y_test, y_pred, squared=False),
+            'mae': mean_absolute_error(y_test, y_pred),
+            'mape': mean_absolute_percentage_error(y_test, y_pred)
+        }
 
-        # ✅ Deduplicate features while preserving order
-        seen = set()
-        final_features = [f for f in all_top_features if not (f in seen or seen.add(f))]
-
-        print(
-            f"\n✅ Final Selected Features (Deduplicated from all models): {len(final_features)}"
-        )
-        print(final_features)
-
-        print("\n📊 Performance Metrics by Model:")
-        for name, metrics in metrics_dict.items():
-            print(f"{name}: {metrics}")
-
-        return final_features, metrics_dict
+        return selected, metrics
