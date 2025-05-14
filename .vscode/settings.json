@@ -40,6 +40,7 @@
     "scikit",
     "setuptools",
     "statsmodels",
+    "streamlit",
     "tensorflow",
     "testpaths",
     "venv",

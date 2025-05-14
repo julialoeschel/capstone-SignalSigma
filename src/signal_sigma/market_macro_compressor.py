@@ -1,7 +1,11 @@
+# ---
+# description: Provides a class to fetch, normalize, and compress macro-market indicators into composite features.
+# ---
+
 import yfinance as yf
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler
+from signal_sigma.config import cfg
 
 
 class MarketMacroCompressor:
@@ -17,36 +21,13 @@ class MarketMacroCompressor:
     Use this class to reduce dimensionality while retaining economic insight.
     """
 
+    DEFAULT_MACROS = cfg.MACROS_ALT
+
     def __init__(self, start="2000-01-01", end=None):
         self.start = start
         self.end = end or pd.Timestamp.today().strftime("%Y-%m-%d")
-        self.indicator_symbols = {
-            # 🔹 Equity Indices
-            "^GSPC": "sp500",  # Broad market (sentiment baseline)
-            "^DJI": "dowjones",  # Industrial-heavy U.S. large caps
-            "^IXIC": "nasdaq",  # Tech/growth-heavy index
-            # 🔹 Volatility (Risk Appetite)
-            "^VIX": "vix",  # Market fear index
-            # 🔹 Interest Rates
-            "^TNX": "10y_yield",  # Benchmark long-term rate
-            "^IRX": "3mo_yield",  # Short-term rate (Fed influenced)
-            # 🔹 Commodities
-            "GC=F": "gold",  # Inflation hedge / risk-off asset
-            "CL=F": "oil",  # Global demand & inflation driver
-            # 🔹 Currency Strength
-            "DX-Y.NYB": "dxy",  # Dollar Index
-            # 🔹 ETFs (Market segments)
-            "QQQ": "qqq",  # Tech exposure
-            "XLK": "tech_etf",  # Broader technology sector
-            "XLF": "financial_etf",  # Interest-sensitive stocks
-            "XLE": "energy_etf",  # Energy inflation proxy
-            "ARKK": "arkk",  # Speculative/growth
-            "TLT": "longbond_etf",  # Long-term treasury bond
-            "BND": "bond_market_etf",  # Total bond market
-            # 🔹 Cryptocurrencies (speculative innovation)
-            "BTC-USD": "bitcoin",
-            "ETH-USD": "ethereum",
-        }
+        self.indicator_symbols = self.DEFAULT_MACROS
+        # XXX: Why this selection
 
     def fetch_data(self):
         """

@@ -20,17 +20,22 @@ help:
 	@echo "    $(BOLD_WHITE)⟡ Σιγναλ Σιγμα ⟡$(RESET)"
 	@echo "    $(BOLD_WHITE)⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡$(RESET)"
 	@echo
-	@echo "    $(BOLD_WHITE)Install options:$(RESET)"
-	@echo "    $(BOLD_WHITE)⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡⟡$(RESET)"
-	@echo
+	@echo "    $(BOLD_WHITE)Setup:$(RESET)"
 	@echo "    make basic-unix      - Set up virtual environment and dependencies on macOS/Linux"
 	@echo "    make basic-win       - Set up virtual environment and dependencies on Windows (PowerShell)"
 	@echo "    make dev-unix        - Set up development environment and pre-commit hooks on macOS/Linux"
 	@echo "    make dev-win         - Set up development environment and pre-commit hooks on Windows (PowerShell)"
-	@echo "    make clear-unix      - Clear directories with build results on macOS/Linux"
-	@echo "    make clear-win       - Clear directories with build results on Windows (PowerShell)"
-	@echo "    make reset-unix      - Clear as before and remove virtual environment on macOS/Linux"
-	@echo "    make reset-win       - Clear as before and remove virtual environment on Windows"
+	@echo 
+	@echo "    $(BOLD_WHITE)Clean-Up:$(RESET)"
+	@echo "    make clear-unix      - Clear build artifacts in data, logs, plots on macOS/Linux"
+	@echo "    make clear-win       - Clear build artifacts in data, logs, plots on Windows (PowerShell)"
+	@echo "    make reset-unix      - Clear build artifacts and remove virtual environment on macOS/Linux"
+	@echo "    make reset-win       - Clear build artifacts and remove virtual environment on Windows (PowerShell)"
+	@echo
+	@echo "    $(BOLD_WHITE)Important Make Flags:$(RESET)"
+	@echo "    -n                   - Dry-run (print commands without running them)"
+	@echo "    -s                   - Silent mode (don't print executed commands)"
+	@echo "    --debug[=b|v|a]      - Debug info (b=basic [default], v=verbose, a=all)"
 	@echo
 
 basic-unix:

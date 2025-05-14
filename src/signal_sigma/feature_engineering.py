@@ -1,3 +1,7 @@
+# ---
+# description: Feature engineering for stock data.
+# ---
+
 import pandas as pd
 import numpy as np
 import pandas_market_calendars as mcal
