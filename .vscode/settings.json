@@ -27,6 +27,7 @@
     "mathbb",
     "matplotlib",
     "mdformat",
+    "metapackage",
     "minversion",
     "missingno",
     "mlflow",
